@@ -29,26 +29,28 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.simple_rest.s_rest.R;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Map.Entry;
 
 
 /**this class provides functionalities to make http request on restful webservice.
  * this class can be able to make any http request WITHOUT BODY.
  * see 'ExtendedRequest' to make Http request with body.
- * it provides functionality to parse the Http Json response in POJO objects.<br><br>
+ * <br><br>
+ * it provides functionality to parse the Http Json response in POJO objects.
  * <br><br>
  * if the response is in form of Json array of particular entity then the
-   generic type must be Array of the class.<br>
+ generic type must be Array of the class.
+ * if the response is in form of plan text then the generic type 'T' must be String.
+ * any class can be used in case of empty response expected.
  * <br><br>
- * 'HeaderTools' class can be used to make authentication header using token and can be
-   used make request which requires authentication.
- * any class can be used in case of empty response.
+ * 'HeaderTools' class can be used to make headers.
  * <br><br>
  * Created by Neel Patel on 24-07-2017.
  * @author Neel Patel
@@ -60,22 +62,21 @@ import java.util.Map.Entry;
 
 public class SimpleRequest<T> extends AsyncTask<String,Void,T> {
 
-    private Class<T> type;
+    @NonNull final private Class<T> type;
+    @NonNull final private HttpHeaders requestHeaders;
+    @NonNull private HttpMethod meth;
     //private Map<String,String> headers=new HashMap<>();
-    private HttpMethod meth;
     private HttpStatus httpStatus;
-    private HttpHeaders requestHeaders,responseHeaders;
+    private HttpHeaders responseHeaders;
 
     /**make a object with specified parameters.
      * @param type class object of expected return type.
      * @param meth http request method.
      * @param header http request header.
      */
-    public SimpleRequest(@NonNull Class<T> type,@NonNull HttpMethod meth,
+    public SimpleRequest(@NonNull Class<T> type, @NonNull HttpMethod meth,
                          Entry<String,String> ... header) {
-        this.type=type;
-        this.meth=meth;
-        requestHeaders=new HttpHeaders();
+        this(type,meth,new HttpHeaders());
         for(Entry<String,String> i:header){
             requestHeaders.add(i.getKey(),i.getValue());
         }
@@ -85,7 +86,7 @@ public class SimpleRequest<T> extends AsyncTask<String,Void,T> {
      * @param type class object of expected return type.
      * @param header http request headers.
      */
-    public SimpleRequest(@NonNull Class<T> type,Entry<String,String> ... header) {
+    public SimpleRequest(@NonNull Class<T> type, Entry<String,String> ... header) {
         this(type, HttpMethod.GET, header);
     }
 
@@ -94,7 +95,7 @@ public class SimpleRequest<T> extends AsyncTask<String,Void,T> {
      * @param meth http request method.
      * @param headers http request header.
      */
-    public SimpleRequest(@NonNull Class<T> type,@NonNull HttpMethod meth,
+    public SimpleRequest(@NonNull Class<T> type, @NonNull HttpMethod meth,
                          @NonNull HttpHeaders headers) {
         this.type=type;
         this.meth=meth;
@@ -142,7 +143,44 @@ public class SimpleRequest<T> extends AsyncTask<String,Void,T> {
     }
 
     /**
-     * @return http status code of last response
+     * add a Header to requestHeaders
+     * @param key header name
+     * @param values value of the header
+     */
+    public void addHeader(@NonNull String key,String ... values){
+        requestHeaders.put(key, Arrays.asList(values));
+    }
+
+    /**
+     * set Request method
+     * @param meth http method
+     */
+    public void setHttpMethod(@NonNull HttpMethod meth) {
+        this.meth = meth;
+    }
+
+
+    /**
+     * return Http Request headers
+     * @return request headers
+     */
+    @NonNull
+    public HttpHeaders getRequestHeaders() {
+        return requestHeaders;
+    }
+
+    /**
+     * return request method
+     * @return http method
+     */
+    @NonNull
+    public HttpMethod getHttpMethod() {
+        return meth;
+    }
+
+
+    /**
+     * @return http status code of last request
      */
     @Nullable
     public HttpStatus getHttpStatus() {
@@ -153,7 +191,7 @@ public class SimpleRequest<T> extends AsyncTask<String,Void,T> {
      * @return http headers code of last response
      */
     @Nullable
-    public HttpHeaders getHttpHeaders() {
+    public HttpHeaders getResponseHeaders() {
         return responseHeaders;
     }
 
