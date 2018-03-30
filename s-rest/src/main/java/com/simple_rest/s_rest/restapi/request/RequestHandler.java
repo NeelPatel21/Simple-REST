@@ -148,7 +148,8 @@ public class RequestHandler{
 
             requestHeaders = headers;
             //sending request
-            request = new HttpEntity<>(requestObj,httpHeaders);
+//            request = new HttpEntity<>(requestObj,httpHeaders);
+            request = new HttpEntity<>(requestObj,requestHeaders);
             ResponseEntity<T> response;
             response = restTemplate.exchange(url,meth,request,type);
             this.httpStatus = response.getStatusCode();
